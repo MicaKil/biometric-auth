@@ -6,26 +6,41 @@ import os
 # Get a reference to webcam #0 (the default one)
 video_capture = cv2.VideoCapture(0)
 
-#Listar archivos .jpg en la carpeta input_database 
-input_database = "Input_database"
-files = os.listdir(input_database)
-map(lambda x : x.endswith('.jpg'), files)
-file_paths = [os.path.join(input_database, x) for x in files]
-print(files)
+# Folders names 
+input_database = "Input_images"
+encoded_faces_database = "Face_encodings"
+
+#List .jpg files in the input_database
+picture_files = os.listdir(input_database)
+map(lambda x : x.endswith('.jpg'), picture_files)
+
+#List .npy files in the encoded_faces_database 
+encoded_files = os.listdir(encoded_faces_database)
+map(lambda x : x.endswith('.npy'), encoded_files)
 
 # Load a sample picture and learn how to recognize it.
 print("Loading sample pictures...")
 
 user_face_encodings = [] 
 user_names = []
-for picture in file_paths:
-    picture_image = face_recognition.load_image_file(picture)
-    picture_face_encoding = face_recognition.face_encodings(picture_image)[0]
-    user_face_encodings.append(picture_face_encoding)
-    #user_names.append(picture.split(".")[0])
-    print(f"Picture {picture} loaded and encoded.")
-user_names = [x.split(".")[0] for x in files]
-print("Sample picture loaded and encoded.")
+for picture in picture_files:
+    if picture.split(".")[0] + ".npy" not in encoded_files:
+        
+        picture_image = face_recognition.load_image_file(input_database +"/"+ picture)
+        picture_face_encoding = face_recognition.face_encodings(picture_image)[0]
+        np.save("Face_encodings/" + picture.split(".")[0], picture_face_encoding)
+
+        user_face_encodings.append(picture_face_encoding)
+        user_names.append(picture.split(".")[0])
+        
+        print(f"Picture {picture} loaded and encoded.")
+
+print("Sample pictures loaded and encoded.")
+
+# Load the known face encodings and names
+for encoded in encoded_files:
+    user_face_encodings.append(np.load(encoded_faces_database +"/"+ encoded))
+    user_names.append(encoded.split(".")[0])
 
 # Initialize some variables
 face_locations = []
